@@ -33,12 +33,30 @@ class CareerAgent:
         return self.rag_tool.retrieve(f"{target_role} {' '.join(gaps)}")
 
     def _fallback_roadmap(self, target_role, analysis, documents):
-        steps = "\n".join(
-            f"{index + 1}. Build {gap.title()} through a focused lesson and a small practical exercise."
-            for index, gap in enumerate(analysis["gaps"])
-        ) or "1. Build a portfolio project that demonstrates your current skill stack."
-        grounding = documents[0]["content"][:500]
-        return f"## {target_role} Roadmap\n\n{steps}\n\n### Grounded guidance\n{grounding}"
+        role_projects = {
+            "ai engineer": ("an evaluated machine-learning model", "a model-serving API with Docker", "an MLOps case study with experiment notes"),
+            "web developer": ("a responsive React interface", "a secure full-stack feature with an API", "a deployed portfolio application"),
+            "data analyst": ("a cleaned and documented dataset", "an insight dashboard with SQL and visuals", "a stakeholder-ready data story"),
+            "data scientist": ("an exploratory data notebook", "a validated predictive model", "a reproducible end-to-end data case study"),
+            "cybersecurity analyst": ("a legal network-analysis lab", "an incident investigation with Wireshark", "a defensive security portfolio report"),
+            "mobile developer": ("a mobile UI prototype", "a React Native app connected to an API", "a polished device-tested mobile app"),
+        }
+        foundation, build, launch = role_projects.get(
+            target_role.lower(),
+            ("a focused skills exercise", "a practical project", "a portfolio case study"),
+        )
+        gaps = analysis["gaps"]
+        first_focus = ", ".join(gap.title() for gap in gaps[:2]) or "your strongest core skills"
+        second_focus = ", ".join(gap.title() for gap in gaps[2:4]) or "your next technical priority"
+        advanced_focus = ", ".join(gap.title() for gap in gaps[4:]) or "quality, documentation, and iteration"
+        steps = [
+            f"1. Foundation · Spend week 1 strengthening {first_focus}; finish {foundation}.",
+            f"2. Build · Spend weeks 2–3 applying {second_focus}; ship {build}.",
+            f"3. Launch · Spend week 4 improving {advanced_focus}; publish {launch} with a clear README.",
+            "4. Reflect · Review your readiness score, mark completed steps, and use RAG Chat to choose the next gap.",
+        ]
+        evidence = documents[0]["content"].replace("\n", " ").strip()[:280]
+        return f"## {target_role} Roadmap\n\n{'\n'.join(steps)}\n\n### Retrieved evidence\n{evidence}"
 
     def _generate_with_llm(self, target_role, analysis, documents):
         context = "\n\n".join(f"Source: {item['source']}\n{item['content']}" for item in documents)
