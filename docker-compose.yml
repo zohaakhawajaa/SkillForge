@@ -1,23 +1,61 @@
-version: '3.8'
-
 services:
-  api-gateway:
-    build: 
-      context: ./backend/api-gateway
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    networks:
-      - skillforge-network
+  mongodb:
+    image: mongo:7
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: skillforge
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [skillforge-network]
 
   python-service:
     build:
-      context: ./python-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: python-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
     ports:
       - "5000:5000"
-    networks:
-      - skillforge-network
+    networks: [skillforge-network]
+
+  api-gateway:
+    build:
+      context: ./backend/api-gateway
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      MONGODB_URI: mongodb://mongodb:27017/skillforge
+      PYTHON_SERVICE_URL: http://python-service:5000
+      CORS_ORIGIN: http://localhost:8080
+      JWT_SECRET: ${JWT_SECRET:-skillforge-local-development-secret-change-before-production}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      python-service:
+        condition: service_started
+    ports:
+      - "3000:3000"
+    networks: [skillforge-network]
+
+  frontend:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - api-gateway
+    ports:
+      - "8080:80"
+    networks: [skillforge-network]
+
+volumes:
+  mongo-data:
 
 networks:
   skillforge-network:

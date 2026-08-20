@@ -17,7 +17,11 @@ class SkillAnalyzer:
         # Later in the hackathon, we will replace this with an AI/RAG system!
         self.role_requirements = {
             "ai engineer": ["python", "machine learning", "git", "docker", "mathematics", "sql"],
-            "web developer": ["html", "css", "javascript", "react", "node.js", "git"]
+            "web developer": ["html", "css", "javascript", "react", "node.js", "git"],
+            "data analyst": ["python", "sql", "excel", "statistics", "data visualization", "power bi"],
+            "data scientist": ["python", "sql", "statistics", "machine learning", "data visualization", "git"],
+            "cybersecurity analyst": ["networking", "linux", "python", "security fundamentals", "wireshark", "git"],
+            "mobile developer": ["javascript", "react", "react native", "git", "api integration", "mobile ui"]
         }
 
     def calculate_score(self):

@@ -1,0 +1,4 @@
+# Data Analyst Roadmap
+Build confidence in Excel or spreadsheets, SQL, statistics, and clear data visualization.
+Practice by cleaning a public dataset, answering business questions, and presenting findings in a dashboard.
+Learn a BI tool such as Power BI, then publish a portfolio case study with your assumptions and conclusions.

@@ -45,3 +45,50 @@ project/
 
 ## 👨‍💻 Author
 - [@zohaakhawajaa](https://github.com/zohaakhawajaa)
+
+## Run locally
+
+The complete stack is containerized. From the `SkillForge` directory, run:
+
+```bash
+docker compose up --build
+```
+
+Open `http://localhost:8080` for the dashboard. The API gateway is available at
+`http://localhost:3000/api/health`, and the Python AI service health endpoint is
+at `http://localhost:5000/api/health`.
+
+Roadmaps work without an API key using the local knowledge-base fallback. To use
+an OpenAI-generated roadmap, set `OPENAI_API_KEY` in your shell before starting
+Compose. You may also set `OPENAI_MODEL` (defaults to `gpt-4.1-mini`).
+
+For production, set a long random `JWT_SECRET` before starting Compose. The
+included default is only suitable for local development.
+
+## Quick verification
+
+Run the core AI checks without starting Docker:
+
+```bash
+python python-service/test_skill_analyzer.py
+```
+
+Supported career goals: AI Engineer, Web Developer, Data Analyst, Data Scientist,
+Cybersecurity Analyst, and Mobile Developer.
+
+## Continuous integration
+
+GitHub Actions runs Python analyzer tests, a production frontend build, API syntax
+validation, and Docker Compose validation on pushes and pull requests to `main`.
+
+## Kubernetes deployment
+
+Build and publish the three images to a registry, update their image names in
+`kubernetes/skillforge-stack.yaml`, replace the placeholder secret values, then run:
+
+```bash
+kubectl apply -f kubernetes/skillforge-stack.yaml
+```
+
+The included MongoDB deployment uses ephemeral storage for demonstration only.
+Use a managed database or persistent volume before a production deployment.

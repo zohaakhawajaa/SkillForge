@@ -1,12 +1,14 @@
-FROM python:3.9-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY python-service/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+COPY agent ./agent
+COPY rag ./rag
+COPY python-service ./python-service
 
 EXPOSE 5000
 
-CMD ["python", "app.py"]
+CMD ["python", "python-service/app.py"]

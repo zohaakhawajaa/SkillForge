@@ -1,0 +1,4 @@
+# Mobile Developer Roadmap
+Learn JavaScript and React fundamentals before building mobile interfaces with React Native.
+Practice navigation, accessible mobile UI, API integration, testing on devices, and version control with Git.
+Ship a small, complete app that demonstrates one useful user journey.

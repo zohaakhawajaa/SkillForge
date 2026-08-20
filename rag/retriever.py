@@ -1,4 +1,5 @@
 import os
+import re
 
 class RAGRetriever:
     """
@@ -26,21 +27,16 @@ class RAGRetriever:
                 with open(os.path.join(actual_path, filename), 'r', encoding='utf-8') as f:
                     self.documents[filename] = f.read()
 
-    def retrieve(self, query):
-        """
-        Simulates a Vector Database search.
-        It finds the document that matches the user's career goal.
-        """
-        query = query.lower()
-        results = []
-        
+    def retrieve(self, query, limit=2):
+        """Return the most relevant local knowledge-base documents with source metadata."""
+        query_terms = set(re.findall(r"[a-z0-9.+#]+", query.lower()))
+        ranked = []
         for name, content in self.documents.items():
-            if "ai" in query and "ai" in name:
-                results.append(content)
-            elif "web" in query and "web" in name:
-                results.append(content)
-        
-        if not results:
-            return "General Advice: Build projects, learn Git, and practice coding daily."
-        
-        return "\n".join(results)
+            terms = set(re.findall(r"[a-z0-9.+#]+", f"{name} {content}".lower()))
+            overlap = len(query_terms & terms)
+            if overlap:
+                ranked.append((overlap, name, content))
+        ranked.sort(reverse=True, key=lambda item: item[0])
+        if not ranked:
+            return [{"source": "general-guidance", "content": "Build projects, learn Git, and practice coding daily."}]
+        return [{"source": name, "content": content} for _, name, content in ranked[:limit]]

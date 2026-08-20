@@ -1,0 +1,4 @@
+# Data Scientist Roadmap
+Develop strong Python, SQL, statistics, and data visualization skills before moving into machine learning.
+Use reproducible notebooks, evaluate models with suitable metrics, and explain results in plain language.
+Build portfolio projects around real datasets with documented questions, methods, limitations, and results.

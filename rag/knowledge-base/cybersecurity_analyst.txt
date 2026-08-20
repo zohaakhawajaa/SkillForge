@@ -1,0 +1,4 @@
+# Cybersecurity Analyst Roadmap
+Start with networking, Linux, security fundamentals, and ethical lab practice.
+Learn to inspect traffic with Wireshark, understand common attack patterns, and write clear incident reports.
+Use only legal practice environments and document defensive findings in a security portfolio.

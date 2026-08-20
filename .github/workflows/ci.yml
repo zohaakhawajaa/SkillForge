@@ -1,0 +1,55 @@
+name: SkillForge CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  python-quality:
+    name: Python AI checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Python service dependencies
+        run: pip install -r python-service/requirements.txt
+      - name: Run skill analyzer tests
+        run: python python-service/test_skill_analyzer.py
+
+  frontend-build:
+    name: Frontend production build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm install
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+  gateway-check:
+    name: API gateway checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install API gateway dependencies
+        working-directory: backend/api-gateway
+        run: npm install
+      - name: Validate API gateway syntax
+        run: node --check backend/api-gateway/server.js
+      - name: Validate Compose configuration
+        run: docker compose config --quiet

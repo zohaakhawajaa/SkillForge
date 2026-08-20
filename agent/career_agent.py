@@ -1,59 +1,70 @@
-import sys
 import os
+import sys
 
-# Add the root directory to Python's path so we can import our microservices
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(root_dir)
-sys.path.append(os.path.join(root_dir, "python-service"))
+sys.path.extend([root_dir, os.path.join(root_dir, "python-service")])
 
 from skill_analyzer import SkillAnalyzer
 from rag.retriever import RAGRetriever
 
-class CareerAgent:
-    """
-    This satisfies the 'Agentic AI' requirement!
-    An Agent is an AI that has access to multiple "Tools" (functions) it can call.
-    """
-    def __init__(self):
-        # The Agent's Tools
-        self.rag_tool = RAGRetriever(kb_path="rag/knowledge-base")
-        
-    def generate_roadmap(self, student_name, current_skills, target_role):
-        print("[AGENT] Starting Career Planning Workflow...")
-        
-        # TOOL 1: Analyze Skills (Using the Python OOP Microservice)
-        print(f"[AGENT] Using Tool: Analyzing skills for {student_name}...")
-        analyzer = SkillAnalyzer(student_name, current_skills, target_role)
-        gaps = analyzer.identify_gaps()
-        score = analyzer.calculate_score()
-        
-        # TOOL 2: RAG Search (Using the RAG Retriever)
-        print(f"[AGENT] Using Tool: Searching Knowledge Base for '{target_role}'...")
-        kb_info = self.rag_tool.retrieve(target_role)
-        
-        # FINAL STEP: The Generative AI Simulation
-        # (In a production app, we would send 'gaps' and 'kb_info' to the Gemini/OpenAI API here)
-        print("[AGENT] Generating final personalized roadmap...\n")
-        print("="*50)
-        
-        roadmap = f"*** AI CAREER ROADMAP FOR {student_name.upper()} ***\n"
-        roadmap += f"Target Role: {target_role} | Current Readiness: {score}%\n\n"
-        
-        if gaps:
-            roadmap += "[!] SKILL GAPS TO FIX:\n"
-            for gap in gaps:
-                roadmap += f"  - You need to learn: {gap.title()}\n"
-        else:
-            roadmap += "[OK] You have all the core skills for this role!\n"
-            
-        roadmap += "\n--- KNOWLEDGE BASE INSIGHTS (RAG) ---\n"
-        roadmap += kb_info
-        
-        print(roadmap)
-        print("="*50)
-        return roadmap
 
-if __name__ == "__main__":
-    # Test our Agent!
-    agent = CareerAgent()
-    agent.generate_roadmap("Zoha", ["Python", "HTML", "CSS"], "AI Engineer")
+class CareerAgent:
+    """Career-planning agent with two explicit tools: skill analysis and RAG retrieval."""
+
+    def __init__(self):
+        self.rag_tool = RAGRetriever(kb_path=os.path.join(root_dir, "rag", "knowledge-base"))
+        self.openai_client = None
+        api_key = os.getenv("OPENAI_API_KEY")
+        if api_key:
+            from openai import OpenAI
+            self.openai_client = OpenAI(api_key=api_key)
+
+    def analyze_skill_gaps(self, student_name, current_skills, target_role):
+        """Tool 1: OOP skill analysis service."""
+        analyzer = SkillAnalyzer(student_name, current_skills, target_role)
+        return {
+            "score": analyzer.calculate_score(),
+            "gaps": analyzer.identify_gaps(),
+            "recommendations": analyzer.recommend_topics(),
+        }
+
+    def retrieve_grounding(self, target_role, gaps):
+        """Tool 2: local RAG knowledge-base retrieval."""
+        return self.rag_tool.retrieve(f"{target_role} {' '.join(gaps)}")
+
+    def _fallback_roadmap(self, target_role, analysis, documents):
+        steps = "\n".join(
+            f"{index + 1}. Build {gap.title()} through a focused lesson and a small practical exercise."
+            for index, gap in enumerate(analysis["gaps"])
+        ) or "1. Build a portfolio project that demonstrates your current skill stack."
+        grounding = documents[0]["content"][:500]
+        return f"## {target_role} Roadmap\n\n{steps}\n\n### Grounded guidance\n{grounding}"
+
+    def _generate_with_llm(self, target_role, analysis, documents):
+        context = "\n\n".join(f"Source: {item['source']}\n{item['content']}" for item in documents)
+        prompt = f"""You are SkillForge, a supportive career-planning assistant.
+Create a concise, practical, step-by-step roadmap for a student targeting {target_role}.
+Current readiness score: {analysis['score']}%.
+Missing skills: {', '.join(analysis['gaps']) or 'none'}.
+Use the retrieved knowledge below as factual grounding. Do not invent courses, certifications, or sources.
+For each step, include a skill focus, a practical deliverable, and an estimated duration.
+Use readable Markdown.
+
+Retrieved knowledge:
+{context}"""
+        response = self.openai_client.responses.create(
+            model=os.getenv("OPENAI_MODEL", "gpt-4.1-mini"),
+            input=prompt,
+        )
+        return response.output_text
+
+    def generate_roadmap(self, student_name, current_skills, target_role):
+        analysis = self.analyze_skill_gaps(student_name, current_skills, target_role)
+        documents = self.retrieve_grounding(target_role, analysis["gaps"])
+        roadmap = self._generate_with_llm(target_role, analysis, documents) if self.openai_client else self._fallback_roadmap(target_role, analysis, documents)
+        return {
+            **analysis,
+            "roadmap": roadmap,
+            "sources": [item["source"] for item in documents],
+            "generation_mode": "llm" if self.openai_client else "fallback",
+        }
