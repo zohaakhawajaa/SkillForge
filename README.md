@@ -27,20 +27,19 @@ To ensure this is the best project possible, it strictly follows a robust Micros
 ## 📁 Repository Structure
 ```
 project/
-├── frontend/             # React web application
-├── backend/              # Node.js Microservices
-│   ├── auth-service/     # JWT User Authentication
-│   ├── core-service/     # Profile and database interactions
-│   └── api-gateway/      # Routes traffic to microservices
-├── python-service/       # Python OOP SkillAnalyzer
-├── ai-service/           # Generative AI Integrations
-├── rag/                  # Knowledge base and embeddings
-├── agent/                # Agentic AI tools and workflow
-├── docker/               # Dockerfiles and docker-compose
-├── kubernetes/           # K8s Deployment YAMLs
-├── terraform/            # Infrastructure as code
-├── scripts/              # setup.sh and deploy.sh
-└── docs/                 # Architecture & API documentation
+├── frontend/             # React dashboard and Nginx container
+├── backend/              # Node.js microservices
+│   ├── auth-service/     # JWT authentication and user accounts
+│   └── api-gateway/      # Protected profile API and service gateway
+├── python-service/       # OOP SkillAnalyzer and AI HTTP service
+├── rag/knowledge-base/   # Local role-specific RAG source documents
+├── agent/                # CareerAgent orchestration and tool calls
+├── kubernetes/           # Full-stack Kubernetes manifests
+├── terraform/            # AWS ECR infrastructure configuration
+├── scripts/setup.sh      # Linux setup script
+├── docker-compose.yml    # One-command local stack
+├── render.yaml           # Render deployment Blueprint
+└── .github/workflows/    # Continuous-integration workflow
 ```
 
 ## 👨‍💻 Author
