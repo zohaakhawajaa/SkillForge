@@ -5,16 +5,23 @@ const mongoose = require('mongoose');
 const axios = require('axios');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const rateLimit = require('express-rate-limit');
 const StudentProfile = require('./models/StudentProfile');
 const User = require('./models/User');
 
 const app = express();
 const port = process.env.PORT || 3000;
 const pythonServiceUrl = process.env.PYTHON_SERVICE_URL || 'http://localhost:5000';
+const insecureJwtSecrets = new Set(['development-only-change-this-secret', 'skillforge-local-development-secret-change-before-production']);
 const jwtSecret = process.env.JWT_SECRET || 'development-only-change-this-secret';
 
+if (process.env.NODE_ENV === 'production' && insecureJwtSecrets.has(jwtSecret)) throw new Error('JWT_SECRET must be configured in production.');
+app.disable('x-powered-by');
 app.use(cors({ origin: process.env.CORS_ORIGIN?.split(',') || true }));
 app.use(express.json({ limit: '100kb' }));
+app.use((_req, res, next) => { res.setHeader('X-Content-Type-Options', 'nosniff'); res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin'); res.setHeader('X-Frame-Options', 'DENY'); next(); });
+
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: 'draft-7', legacyHeaders: false, message: { error: 'Too many sign-in attempts. Please try again in 15 minutes.' } });
 
 const signToken = user => jwt.sign({ sub: user.id, email: user.email }, jwtSecret, { expiresIn: '7d' });
 const auth = (req, res, next) => {
@@ -26,10 +33,11 @@ const auth = (req, res, next) => {
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', service: 'api-gateway', database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected' }));
 
-app.post('/api/auth/signup', async (req, res, next) => {
+app.post('/api/auth/signup', authLimiter, async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
     if (!name?.trim() || !email?.trim() || typeof password !== 'string') return res.status(400).json({ error: 'Name, email, and password are required.' });
+    if (name.trim().length > 80) return res.status(400).json({ error: 'Name must be 80 characters or fewer.' });
     if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ error: 'Enter a valid email address.' });
     if (password.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters.' });
     if (await User.exists({ email: email.trim().toLowerCase() })) return res.status(409).json({ error: 'An account already exists for this email.' });
@@ -38,7 +46,7 @@ app.post('/api/auth/signup', async (req, res, next) => {
   } catch (error) { next(error); }
 });
 
-app.post('/api/auth/login', async (req, res, next) => {
+app.post('/api/auth/login', authLimiter, async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email: String(email || '').trim().toLowerCase() });
@@ -56,7 +64,9 @@ app.post('/api/profiles', auth, async (req, res, next) => {
   try {
     const { name, targetRole, skills } = req.body;
     if (!name || !targetRole || !Array.isArray(skills)) return res.status(400).json({ error: 'name, targetRole, and a skills array are required.' });
-    const profile = await StudentProfile.create({ user: req.userId, name, targetRole, skills: [...new Set(skills.map(skill => String(skill).trim()).filter(Boolean))] });
+    const cleanSkills = [...new Set(skills.map(skill => String(skill).trim()).filter(Boolean))];
+    if (String(name).trim().length > 80 || String(targetRole).trim().length > 80 || cleanSkills.length > 25 || cleanSkills.some(skill => skill.length > 60)) return res.status(400).json({ error: 'Profile data exceeds allowed limits.' });
+    const profile = await StudentProfile.create({ user: req.userId, name, targetRole, skills: cleanSkills });
     res.status(201).json(profile);
   } catch (error) { next(error); }
 });

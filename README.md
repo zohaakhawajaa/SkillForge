@@ -81,6 +81,12 @@ Cybersecurity Analyst, and Mobile Developer.
 GitHub Actions runs Python analyzer tests, a production frontend build, API syntax
 validation, and Docker Compose validation on pushes and pull requests to `main`.
 
+## Security notes
+
+Passwords are hashed with bcrypt, API sessions use seven-day JWTs, user resources
+are ownership-protected, and authentication endpoints are rate limited. Configure
+a long, unique `JWT_SECRET` before any public deployment.
+
 ## Kubernetes deployment
 
 Build and publish the three images to a registry, update their image names in

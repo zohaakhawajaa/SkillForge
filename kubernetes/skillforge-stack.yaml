@@ -92,6 +92,8 @@ spec:
           imagePullPolicy: IfNotPresent
           ports: [{ containerPort: 3000 }]
           env:
+            - name: NODE_ENV
+              value: production
             - name: MONGODB_URI
               value: mongodb://mongodb:27017/skillforge
             - name: PYTHON_SERVICE_URL
