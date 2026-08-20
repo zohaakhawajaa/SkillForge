@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillForge Demo</title>
+    <!-- Load React via CDN so you don't need Node.js installed to view this -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Load Babel to translate JSX in the browser -->
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    
+    <style>
+        /* NEW MODERN "AI STARTUP" THEME */
+        body { margin: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f8fafc; color: #334155; }
+        .dashboard-container { display: flex; min-height: 100vh; }
+        .sidebar { width: 250px; background-color: #0f172a; color: #f8fafc; padding: 25px 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.1); }
+        .sidebar h2 { margin-top: 0; margin-bottom: 35px; font-size: 1.5rem; letter-spacing: 0.5px; color: #38bdf8; }
+        .sidebar ul { list-style: none; padding: 0; }
+        .sidebar li { padding: 12px 15px; margin-bottom: 8px; border-radius: 6px; cursor: pointer; transition: background 0.2s; color: #cbd5e1; }
+        .sidebar li:hover { background-color: #1e293b; color: #ffffff; }
+        .main-content { flex: 1; padding: 40px 50px; max-width: 1200px; margin: 0 auto; }
+        header h1 { color: #0f172a; margin-bottom: 5px; }
+        header p { color: #64748b; margin-top: 0; font-size: 1.1rem; }
+        .card-grid { display: flex; gap: 24px; margin-top: 35px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03); flex: 1; border: 1px solid #e2e8f0; }
+        .card h3 { margin-top: 0; color: #64748b; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .highlight { font-size: 1.4rem; font-weight: 700; color: #0ea5e9; margin-bottom: 0; }
+        .badges { margin-top: 15px; }
+        .badges span { background: #e0f2fe; color: #0369a1; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; margin-right: 8px; display: inline-block; margin-bottom: 8px; }
+        .action-section { margin-top: 40px; background: white; padding: 40px; border-radius: 12px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        .action-section h2 { color: #0f172a; margin-top: 0; }
+        .action-section p { color: #64748b; margin-bottom: 25px; }
+        button { background: #2563eb; color: white; border: none; padding: 14px 28px; font-size: 1.05rem; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(37,99,235,0.2); }
+        button:hover { background: #1d4ed8; transform: translateY(-1px); box-shadow: 0 6px 8px rgba(37,99,235,0.3); }
+        button:disabled { background: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
+        .roadmap-results { margin-top: 40px; animation: fadeIn 0.5s ease-in-out; }
+        .result-card { background: white; padding: 30px; border-radius: 12px; border-left: 6px solid #10b981; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .result-card h4 { color: #0f172a; font-size: 1.1rem; margin-bottom: 10px; }
+        .alert { color: #ef4444 !important; margin-top: 25px !important; }
+        .result-card ul { line-height: 1.7; color: #334155; }
+        .result-card p { color: #475569; line-height: 1.6; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        function App() {
+            const [roadmap, setRoadmap] = useState(null);
+            const [loading, setLoading] = useState(false);
+
+            const handleGenerate = () => {
+                setLoading(true);
+                
+                setTimeout(() => {
+                    setRoadmap({
+                        score: "16.67%",
+                        gaps: ["Machine Learning", "Docker", "Git", "Mathematics"],
+                        insight: "1. Programming: Python is mandatory.\n2. Mathematics: Linear Algebra, Calculus.\n3. DevOps: Docker, Kubernetes."
+                    });
+                    setLoading(false);
+                }, 1500);
+            };
+
+            return (
+                <div className="dashboard-container">
+                    <nav className="sidebar">
+                        <h2>🚀 SkillForge</h2>
+                        <ul>
+                            <li>Dashboard</li>
+                            <li>My Skills</li>
+                            <li>Assessments</li>
+                            <li>AI Career Agent</li>
+                        </ul>
+                    </nav>
+                    
+                    <main className="main-content">
+                        <header>
+                            <h1>Welcome back, Zoha 👋</h1>
+                            <p>Your AI-Powered Career Development Platform</p>
+                        </header>
+
+                        <section className="card-grid">
+                            <div className="card">
+                                <h3>Current Role Goal</h3>
+                                <p className="highlight">AI Engineer</p>
+                            </div>
+                            <div className="card">
+                                <h3>Current Skills</h3>
+                                <div className="badges">
+                                    <span>Python</span><span>HTML</span><span>CSS</span>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section className="action-section">
+                            <h2>Agentic AI Roadmap Generator</h2>
+                            <p>Click below to have our AI analyze your profile, search the knowledge base, and generate your custom path.</p>
+                            <button onClick={handleGenerate} disabled={loading}>
+                                {loading ? "🤖 AI Agent is thinking..." : "Generate My AI Roadmap"}
+                            </button>
+                        </section>
+
+                        {roadmap && (
+                            <section className="roadmap-results">
+                                <h2>🎓 Your Personalized Roadmap</h2>
+                                <div className="result-card">
+                                    <h4>Readiness Score: {roadmap.score}</h4>
+                                    
+                                    <h4 className="alert">🚨 Skill Gaps to Fix:</h4>
+                                    <ul>
+                                        {roadmap.gaps.map((gap, i) => <li key={i}>{gap}</li>)}
+                                    </ul>
+
+                                    <h4>📚 RAG Knowledge Base Insights:</h4>
+                                    <p>{roadmap.insight}</p>
+                                </div>
+                            </section>
+                        )}
+                    </main>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
