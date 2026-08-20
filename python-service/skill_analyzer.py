@@ -23,6 +23,15 @@ class SkillAnalyzer:
             "cybersecurity analyst": ["networking", "linux", "python", "security fundamentals", "wireshark", "git"],
             "mobile developer": ["javascript", "react", "react native", "git", "api integration", "mobile ui"]
         }
+        # Higher-impact role skills carry more weight than supporting skills.
+        self.role_weights = {
+            "ai engineer": {"python": 25, "machine learning": 30, "git": 5, "docker": 15, "mathematics": 15, "sql": 10},
+            "web developer": {"html": 10, "css": 10, "javascript": 25, "react": 25, "node.js": 20, "git": 10},
+            "data analyst": {"python": 20, "sql": 25, "excel": 15, "statistics": 15, "data visualization": 15, "power bi": 10},
+            "data scientist": {"python": 20, "sql": 15, "statistics": 20, "machine learning": 30, "data visualization": 10, "git": 5},
+            "cybersecurity analyst": {"networking": 25, "linux": 20, "python": 10, "security fundamentals": 25, "wireshark": 15, "git": 5},
+            "mobile developer": {"javascript": 20, "react": 15, "react native": 30, "git": 5, "api integration": 15, "mobile ui": 15},
+        }
 
     def calculate_score(self):
         """Calculates a basic score based on how many required skills the student has."""
@@ -32,12 +41,12 @@ class SkillAnalyzer:
         if not required_skills:
             return 0
 
-        # Count how many of the student's current skills match the required skills
-        matched_skills = [skill for skill in self.current_skills if skill in required_skills]
-        
-        # Calculate percentage score
-        score = (len(matched_skills) / len(required_skills)) * 100
-        return round(score, 2)
+        return round(sum(self.role_weights[self.target_role.lower()].get(skill, 0) for skill in self.matched_skills()), 2)
+
+    def matched_skills(self):
+        """Returns the entered skills that are relevant to the target role."""
+        required_skills = self.role_requirements.get(self.target_role.lower(), [])
+        return [skill for skill in required_skills if skill in self.current_skills]
 
     def identify_gaps(self):
         """Identifies which required skills the student is missing."""

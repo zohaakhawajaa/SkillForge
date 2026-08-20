@@ -91,7 +91,7 @@ function App() {
         const latest = profiles.find(item => item.latestRoadmap);
         if (!latest) return;
         setProfileId(latest._id); setProfile({ name: latest.name, targetRole: latest.targetRole, skills: latest.skills });
-        setRoadmap({ score: latest.latestRoadmap.readinessScore, gaps: latest.latestRoadmap.gaps, recommendations: latest.latestRoadmap.recommendations, roadmap: latest.latestRoadmap.roadmap, sources: latest.latestRoadmap.retrievedSources, generation_mode: 'saved' });
+        setRoadmap({ score: latest.latestRoadmap.readinessScore, matched_skills: latest.latestRoadmap.matchedSkills || [], gaps: latest.latestRoadmap.gaps, recommendations: latest.latestRoadmap.recommendations, roadmap: latest.latestRoadmap.roadmap, sources: latest.latestRoadmap.retrievedSources, generation_mode: 'saved' });
         setCompletedSteps(latest.latestRoadmap.completedSteps || []);
       }).catch(() => {});
   }, [auth]);
@@ -124,7 +124,7 @@ function App() {
       if (!response.ok) throw new Error(result.error || 'We could not generate your roadmap.');
       setRoadmap(result);
       setCompletedSteps([]); setChatMessages([]);
-      setHistory(current => [{ ...saved, latestRoadmap: { readinessScore: result.score, gaps: result.gaps, recommendations: result.recommendations, roadmap: result.roadmap, retrievedSources: result.sources, completedSteps: [] } }, ...current.filter(item => item._id !== id)]);
+      setHistory(current => [{ ...saved, latestRoadmap: { readinessScore: result.score, matchedSkills: result.matched_skills, gaps: result.gaps, recommendations: result.recommendations, roadmap: result.roadmap, retrievedSources: result.sources, completedSteps: [] } }, ...current.filter(item => item._id !== id)]);
       window.setTimeout(() => document.querySelector('#roadmap')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
     } catch (requestError) { setError(requestError.message || 'Something went wrong. Please try again.'); }
     finally { setLoading(false); }

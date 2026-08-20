@@ -24,6 +24,7 @@ class CareerAgent:
         analyzer = SkillAnalyzer(student_name, current_skills, target_role)
         return {
             "score": analyzer.calculate_score(),
+            "matched_skills": analyzer.matched_skills(),
             "gaps": analyzer.identify_gaps(),
             "recommendations": analyzer.recommend_topics(),
         }

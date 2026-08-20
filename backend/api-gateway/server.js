@@ -70,7 +70,7 @@ app.post('/api/profiles/:id/roadmap', auth, async (req, res, next) => {
     const profile = await StudentProfile.findOne({ _id: req.params.id, user: req.userId });
     if (!profile) return res.status(404).json({ error: 'Profile not found.' });
     const { data } = await axios.post(`${pythonServiceUrl}/api/roadmap`, { student_name: profile.name, current_skills: profile.skills, target_role: profile.targetRole }, { timeout: 30000 });
-    profile.latestRoadmap = { readinessScore: data.score, gaps: data.gaps, recommendations: data.recommendations, roadmap: data.roadmap, retrievedSources: data.sources, completedSteps: [] };
+    profile.latestRoadmap = { readinessScore: data.score, matchedSkills: data.matched_skills, gaps: data.gaps, recommendations: data.recommendations, roadmap: data.roadmap, retrievedSources: data.sources, completedSteps: [] };
     await profile.save(); res.json({ profileId: profile.id, ...data });
   } catch (error) { if (error.code === 'ECONNREFUSED' || error.code === 'ECONNABORTED') return res.status(503).json({ error: 'AI analysis service is temporarily unavailable.' }); next(error); }
 });

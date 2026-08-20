@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const roadmapSchema = new mongoose.Schema({
   readinessScore: Number,
+  matchedSkills: [String],
   gaps: [String],
   recommendations: [String],
   roadmap: String,

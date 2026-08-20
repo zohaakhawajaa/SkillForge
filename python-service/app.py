@@ -41,6 +41,7 @@ def analyze_skills():
         "student": analyzer.student_name,
         "role": analyzer.target_role,
         "score": analyzer.calculate_score(),
+        "matched_skills": analyzer.matched_skills(),
         "missing_skills": analyzer.identify_gaps(),
         "recommendations": analyzer.recommend_topics(),
     })
