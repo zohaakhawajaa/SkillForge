@@ -2,8 +2,9 @@ import sys
 import os
 
 # Add the root directory to Python's path so we can import our microservices
-# Add the python-service directory specifically so we can import from it despite the hyphen
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "python-service"))
+root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(root_dir)
+sys.path.append(os.path.join(root_dir, "python-service"))
 
 from skill_analyzer import SkillAnalyzer
 from rag.retriever import RAGRetriever
