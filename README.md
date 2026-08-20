@@ -79,7 +79,8 @@ Cybersecurity Analyst, and Mobile Developer.
 ## Continuous integration
 
 GitHub Actions runs Python analyzer tests, a production frontend build, API syntax
-validation, and Docker Compose validation on pushes and pull requests to `main`.
+validation, Docker Compose validation, and a full-stack Docker smoke test on pushes
+and pull requests to `main`.
 
 ## Security notes
 
