@@ -30,10 +30,12 @@ class RAGRetriever:
     def retrieve(self, query, limit=2):
         """Return the most relevant local knowledge-base documents with source metadata."""
         query_terms = set(re.findall(r"[a-z0-9.+#]+", query.lower()))
+        preferred_source = next((name for name in self.documents if name[:-4].replace("_", " ") in query.lower()), None)
         ranked = []
         for name, content in self.documents.items():
             terms = set(re.findall(r"[a-z0-9.+#]+", f"{name} {content}".lower()))
-            overlap = len(query_terms & terms)
+            # The role's own document always wins over a loosely related document.
+            overlap = len(query_terms & terms) + (100 if name == preferred_source else 0)
             if overlap:
                 ranked.append((overlap, name, content))
         ranked.sort(reverse=True, key=lambda item: item[0])

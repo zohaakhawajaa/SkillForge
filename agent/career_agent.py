@@ -94,8 +94,14 @@ Retrieved knowledge:\n{context}""",
             )
             answer = response.output_text
         else:
-            answer = f"For your {target_role} path, focus on {', '.join(analysis['gaps'][:3]) or 'a portfolio project'}. " \
-                     f"Based on the knowledge base: {documents[0]['content'][:420]}"
+            first_gap = analysis['gaps'][0] if analysis['gaps'] else 'a portfolio project'
+            evidence = documents[0]['content'].replace('\n', ' ').strip()[:240]
+            answer = (
+                f"For your {target_role} path, start with {first_gap.title()}. "
+                f"It is the highest-priority missing skill in your current plan. "
+                f"Next, turn it into one small practical deliverable before moving to {analysis['gaps'][1].title() if len(analysis['gaps']) > 1 else 'a portfolio project'}. "
+                f"Grounding: {evidence}"
+            )
         return {"answer": answer, "sources": [item["source"] for item in documents], "generation_mode": "llm" if self.openai_client else "fallback"}
 
     def generate_roadmap(self, student_name, current_skills, target_role):
