@@ -1,0 +1,60 @@
+services:
+  - type: web
+    name: skillforge-frontend
+    runtime: docker
+    plan: free
+    dockerfilePath: frontend/Dockerfile
+    dockerContext: frontend
+    healthCheckPath: /
+
+  - type: pserv
+    name: api-gateway
+    runtime: docker
+    plan: starter
+    dockerfilePath: backend/api-gateway/Dockerfile
+    dockerContext: backend/api-gateway
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3000"
+      - key: PYTHON_SERVICE_URL
+        value: python-service:5000
+      - key: AUTH_SERVICE_URL
+        value: auth-service:4000
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+
+  - type: pserv
+    name: auth-service
+    runtime: docker
+    plan: starter
+    dockerfilePath: backend/auth-service/Dockerfile
+    dockerContext: backend/auth-service
+    envVars:
+      - key: PORT
+        value: "4000"
+      - key: MONGODB_URI
+        fromService:
+          type: pserv
+          name: api-gateway
+          envVarKey: MONGODB_URI
+      - key: JWT_SECRET
+        fromService:
+          type: pserv
+          name: api-gateway
+          envVarKey: JWT_SECRET
+
+  - type: pserv
+    name: python-service
+    runtime: docker
+    plan: starter
+    dockerfilePath: python-service/Dockerfile
+    dockerContext: .
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4.1-mini

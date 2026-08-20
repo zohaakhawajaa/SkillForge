@@ -25,6 +25,19 @@ services:
       - "5000:5000"
     networks: [skillforge-network]
 
+  auth-service:
+    build:
+      context: ./backend/auth-service
+    restart: unless-stopped
+    environment:
+      PORT: 4000
+      MONGODB_URI: mongodb://mongodb:27017/skillforge
+      JWT_SECRET: ${JWT_SECRET:-skillforge-local-development-secret-change-before-production}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks: [skillforge-network]
+
   api-gateway:
     build:
       context: ./backend/api-gateway
@@ -34,12 +47,15 @@ services:
       NODE_ENV: development
       MONGODB_URI: mongodb://mongodb:27017/skillforge
       PYTHON_SERVICE_URL: http://python-service:5000
+      AUTH_SERVICE_URL: http://auth-service:4000
       CORS_ORIGIN: http://localhost:8080
       JWT_SECRET: ${JWT_SECRET:-skillforge-local-development-secret-change-before-production}
     depends_on:
       mongodb:
         condition: service_healthy
       python-service:
+        condition: service_started
+      auth-service:
         condition: service_started
     ports:
       - "3000:3000"

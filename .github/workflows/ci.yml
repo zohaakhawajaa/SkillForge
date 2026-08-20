@@ -54,6 +54,20 @@ jobs:
       - name: Validate Compose configuration
         run: docker compose config --quiet
 
+  auth-service-check:
+    name: Auth service checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install auth service dependencies
+        working-directory: backend/auth-service
+        run: npm install
+      - name: Validate auth service syntax
+        run: node --check backend/auth-service/server.js
+
   docker-smoke-test:
     name: Full-stack Docker smoke test
     runs-on: ubuntu-latest

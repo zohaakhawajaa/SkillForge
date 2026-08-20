@@ -76,6 +76,20 @@ python python-service/test_skill_analyzer.py
 Supported career goals: AI Engineer, Web Developer, Data Analyst, Data Scientist,
 Cybersecurity Analyst, and Mobile Developer.
 
+## Hackathon demo flow
+
+For the required 5–7 minute demo, present the live system in this order:
+
+1. Create an account (standalone Auth Service behind the API Gateway).
+2. Enter a student profile, target role, and current skills.
+3. Generate the skill assessment and personalized AI roadmap.
+4. Open **RAG Chat** under the roadmap and ask a role-specific follow-up question.
+5. Mark a roadmap step complete and show saved progress after a refresh/sign-in.
+6. Show `docker-compose.yml`, `kubernetes/skillforge-stack.yaml`, `terraform/`, and the green GitHub Actions workflow.
+
+The RAG Chat and roadmap both use `CareerAgent`, which invokes the OOP
+`SkillAnalyzer` and the local `rag/knowledge-base` retriever before responding.
+
 ## Continuous integration
 
 GitHub Actions runs Python analyzer tests, a production frontend build, API syntax
@@ -99,3 +113,32 @@ kubectl apply -f kubernetes/skillforge-stack.yaml
 
 The included MongoDB deployment uses ephemeral storage for demonstration only.
 Use a managed database or persistent volume before a production deployment.
+
+## Terraform infrastructure
+
+`terraform/` defines three AWS ECR repositories for the frontend, API gateway,
+and Python AI images used by the Kubernetes deployment. With AWS credentials
+configured locally:
+
+```bash
+cd terraform
+terraform init
+terraform plan
+terraform apply
+```
+
+Copy `terraform.tfvars.example` to `terraform.tfvars` if you want to override
+the default AWS region or project name. Do not commit `terraform.tfvars`.
+
+## Render deployment
+
+The repository includes a `render.yaml` Blueprint for Render. It creates a public
+frontend plus private API and Python services. It requires a MongoDB Atlas (or
+other managed MongoDB) connection string because Render Blueprints provide
+Postgres databases but not MongoDB.
+
+1. Create a MongoDB Atlas database and copy its `mongodb+srv://...` connection string.
+2. In Render, choose **New → Blueprint**, connect this GitHub repository, and select `render.yaml`.
+3. Enter the `MONGODB_URI` value when prompted. Render generates `JWT_SECRET`.
+4. Leave `OPENAI_API_KEY` blank to use local fallback roadmaps, or provide it for LLM mode.
+5. Deploy. Render's private services keep the API and Python service off the public internet.

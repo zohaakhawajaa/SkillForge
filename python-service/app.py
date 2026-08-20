@@ -59,5 +59,21 @@ def roadmap():
         return jsonify({"error": "Roadmap generation failed.", "detail": str(exc) if app.debug else None}), 502
 
 
+@app.post("/api/chat")
+def chat():
+    data = request.get_json(silent=True)
+    error = validate_payload(data)
+    if error:
+        return jsonify({"error": error}), 400
+    question = str(data.get("question", "")).strip()
+    if not question or len(question) > 500:
+        return jsonify({"error": "question is required and must be 500 characters or fewer."}), 400
+    try:
+        return jsonify(agent.answer_question(data.get("student_name", "Student"), data["current_skills"], data["target_role"], question))
+    except Exception as exc:
+        app.logger.exception("RAG chat failed")
+        return jsonify({"error": "RAG chat failed.", "detail": str(exc) if app.debug else None}), 502
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

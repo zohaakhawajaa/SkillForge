@@ -3,15 +3,15 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const axios = require('axios');
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
 const StudentProfile = require('./models/StudentProfile');
-const User = require('./models/User');
 
 const app = express();
 const port = process.env.PORT || 3000;
-const pythonServiceUrl = process.env.PYTHON_SERVICE_URL || 'http://localhost:5000';
+const pythonServiceAddress = process.env.PYTHON_SERVICE_URL || 'http://localhost:5000';
+const pythonServiceUrl = /^https?:\/\//.test(pythonServiceAddress) ? pythonServiceAddress : `http://${pythonServiceAddress}`;
+const authServiceUrl = process.env.AUTH_SERVICE_URL || 'http://localhost:4000';
 const insecureJwtSecrets = new Set(['development-only-change-this-secret', 'skillforge-local-development-secret-change-before-production']);
 const jwtSecret = process.env.JWT_SECRET || 'development-only-change-this-secret';
 
@@ -33,32 +33,15 @@ const auth = (req, res, next) => {
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', service: 'api-gateway', database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected' }));
 
-app.post('/api/auth/signup', authLimiter, async (req, res, next) => {
+const proxyAuth = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
-    if (!name?.trim() || !email?.trim() || typeof password !== 'string') return res.status(400).json({ error: 'Name, email, and password are required.' });
-    if (name.trim().length > 80) return res.status(400).json({ error: 'Name must be 80 characters or fewer.' });
-    if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ error: 'Enter a valid email address.' });
-    if (password.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters.' });
-    if (await User.exists({ email: email.trim().toLowerCase() })) return res.status(409).json({ error: 'An account already exists for this email.' });
-    const user = await User.create({ name: name.trim(), email: email.trim().toLowerCase(), passwordHash: await bcrypt.hash(password, 12) });
-    res.status(201).json({ token: signToken(user), user: { id: user.id, name: user.name, email: user.email } });
-  } catch (error) { next(error); }
-});
-
-app.post('/api/auth/login', authLimiter, async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email: String(email || '').trim().toLowerCase() });
-    if (!user || !await bcrypt.compare(String(password || ''), user.passwordHash)) return res.status(401).json({ error: 'Incorrect email or password.' });
-    res.json({ token: signToken(user), user: { id: user.id, name: user.name, email: user.email } });
-  } catch (error) { next(error); }
-});
-
-app.get('/api/auth/me', auth, async (req, res, next) => {
-  try { const user = await User.findById(req.userId); if (!user) return res.status(401).json({ error: 'Account not found.' }); res.json({ id: user.id, name: user.name, email: user.email }); }
-  catch (error) { next(error); }
-});
+    const response = await axios({ method: req.method, url: `${authServiceUrl}${req.path.replace('/api/auth', '/auth')}`, data: req.body, headers: { authorization: req.headers.authorization }, validateStatus: () => true, timeout: 10000 });
+    return res.status(response.status).json(response.data);
+  } catch (error) { if (error.code === 'ECONNREFUSED' || error.code === 'ECONNABORTED') return res.status(503).json({ error: 'Authentication service is temporarily unavailable.' }); next(error); }
+};
+app.post('/api/auth/signup', authLimiter, proxyAuth);
+app.post('/api/auth/login', authLimiter, proxyAuth);
+app.get('/api/auth/me', proxyAuth);
 
 app.post('/api/profiles', auth, async (req, res, next) => {
   try {
@@ -90,6 +73,17 @@ app.post('/api/profiles/:id/roadmap', auth, async (req, res, next) => {
     profile.latestRoadmap = { readinessScore: data.score, gaps: data.gaps, recommendations: data.recommendations, roadmap: data.roadmap, retrievedSources: data.sources, completedSteps: [] };
     await profile.save(); res.json({ profileId: profile.id, ...data });
   } catch (error) { if (error.code === 'ECONNREFUSED' || error.code === 'ECONNABORTED') return res.status(503).json({ error: 'AI analysis service is temporarily unavailable.' }); next(error); }
+});
+
+app.post('/api/profiles/:id/chat', auth, async (req, res, next) => {
+  try {
+    const question = String(req.body.question || '').trim();
+    if (!question || question.length > 500) return res.status(400).json({ error: 'A question of 500 characters or fewer is required.' });
+    const profile = await StudentProfile.findOne({ _id: req.params.id, user: req.userId });
+    if (!profile) return res.status(404).json({ error: 'Profile not found.' });
+    const { data } = await axios.post(`${pythonServiceUrl}/api/chat`, { student_name: profile.name, current_skills: profile.skills, target_role: profile.targetRole, question }, { timeout: 30000 });
+    res.json(data);
+  } catch (error) { if (error.code === 'ECONNREFUSED' || error.code === 'ECONNABORTED') return res.status(503).json({ error: 'RAG chat service is temporarily unavailable.' }); next(error); }
 });
 
 app.put('/api/profiles/:id/progress', auth, async (req, res, next) => {
