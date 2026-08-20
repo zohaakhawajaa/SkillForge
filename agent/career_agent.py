@@ -19,34 +19,34 @@ class CareerAgent:
         self.rag_tool = RAGRetriever(kb_path="rag/knowledge-base")
         
     def generate_roadmap(self, student_name, current_skills, target_role):
-        print("🤖 [AGENT] Starting Career Planning Workflow...")
+        print("[AGENT] Starting Career Planning Workflow...")
         
         # TOOL 1: Analyze Skills (Using the Python OOP Microservice)
-        print(f"🤖 [AGENT] Using Tool: Analyzing skills for {student_name}...")
+        print(f"[AGENT] Using Tool: Analyzing skills for {student_name}...")
         analyzer = SkillAnalyzer(student_name, current_skills, target_role)
         gaps = analyzer.identify_gaps()
         score = analyzer.calculate_score()
         
         # TOOL 2: RAG Search (Using the RAG Retriever)
-        print(f"🤖 [AGENT] Using Tool: Searching Knowledge Base for '{target_role}'...")
+        print(f"[AGENT] Using Tool: Searching Knowledge Base for '{target_role}'...")
         kb_info = self.rag_tool.retrieve(target_role)
         
         # FINAL STEP: The Generative AI Simulation
         # (In a production app, we would send 'gaps' and 'kb_info' to the Gemini/OpenAI API here)
-        print("🤖 [AGENT] Generating final personalized roadmap...\n")
+        print("[AGENT] Generating final personalized roadmap...\n")
         print("="*50)
         
-        roadmap = f"🎓 AI CAREER ROADMAP FOR {student_name.upper()} 🎓\n"
+        roadmap = f"*** AI CAREER ROADMAP FOR {student_name.upper()} ***\n"
         roadmap += f"Target Role: {target_role} | Current Readiness: {score}%\n\n"
         
         if gaps:
-            roadmap += "🚨 SKILL GAPS TO FIX:\n"
+            roadmap += "[!] SKILL GAPS TO FIX:\n"
             for gap in gaps:
                 roadmap += f"  - You need to learn: {gap.title()}\n"
         else:
-            roadmap += "✅ You have all the core skills for this role!\n"
+            roadmap += "[OK] You have all the core skills for this role!\n"
             
-        roadmap += "\n📚 KNOWLEDGE BASE INSIGHTS (RAG):\n"
+        roadmap += "\n--- KNOWLEDGE BASE INSIGHTS (RAG) ---\n"
         roadmap += kb_info
         
         print(roadmap)
