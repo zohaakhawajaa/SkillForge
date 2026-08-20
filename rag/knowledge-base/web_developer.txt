@@ -1,0 +1,8 @@
+# Web Development Roadmap
+To become a Full-Stack Web Developer, focus on the MERN stack:
+1. Frontend: HTML, CSS, JavaScript, and React.js.
+2. Backend: Node.js and Express.
+3. Database: MongoDB (NoSQL) or PostgreSQL (SQL).
+4. Version Control: Git and GitHub.
+
+Best practices: Focus on responsive design and ensure your APIs are secure with JWT authentication.

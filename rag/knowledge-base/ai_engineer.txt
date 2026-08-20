@@ -1,0 +1,9 @@
+# AI Engineering Roadmap
+To become an AI Engineer, you must master the following domains:
+1. Programming: Python is mandatory.
+2. Mathematics: Linear Algebra, Calculus, and Statistics.
+3. Machine Learning: Algorithms, Scikit-learn, and model evaluation.
+4. Deep Learning: Neural Networks, TensorFlow, or PyTorch.
+5. DevOps/MLOps: Docker, Kubernetes, and model deployment (Git).
+
+Best practices: Always version control your datasets and keep track of your model experiments.
