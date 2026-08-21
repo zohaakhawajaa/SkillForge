@@ -1,143 +1,99 @@
-# SkillForge 🚀
+# SkillForge
 
-**AI-Powered Student Skills & Career Development Platform**
+**AI-powered career intelligence for students.** SkillForge compares a student's current skills with a chosen tech career, retrieves role-specific learning guidance, and produces a grounded, trackable roadmap.
 
-## 🌟 The Main Purpose
-SkillForge is an AI-powered career development platform that evaluates a student's current tech skills against their dream job, and uses AI to generate a personalized, step-by-step learning roadmap to bridge the gap.
+## Architecture
 
-## 🏆 Project Overview (LOOPLEARN HACKATHON 2026)
-This project is built for **Problem Statement 03 (PS-03)**. It focuses on solving the problem of students not knowing what skills they are missing or what projects they should build to reach their career goals in technology.
+![SkillForge architecture](docs/architecture.svg)
 
-**Target SDGs:**
-- SDG 4: Quality Education
-- SDG 8: Decent Work and Economic Growth
-- SDG 9: Industry, Innovation and Infrastructure
-- SDG 10: Reduced Inequalities
+The application uses a microservices design:
 
-## 🏗️ Architecture & Tech Stack
-To ensure this is the best project possible, it strictly follows a robust Microservices architecture:
+- **React + Nginx frontend:** account creation, profile form, roadmap, RAG chat, progress, and light/dark interface.
+- **Node.js API Gateway:** protected profile routes and service routing.
+- **Node.js Auth Service:** bcrypt password hashing and JWT sessions.
+- **Python AI Service:** OOP `SkillAnalyzer` and `CareerAgent`.
+- **MongoDB:** student profiles, saved roadmaps, and completed steps.
+- **Local RAG knowledge base:** six role-specific documents grounding roadmaps and chat.
 
-- **Frontend:** React (Responsive Dashboard)
-- **Backend Core:** Node.js, Express, MongoDB (API Gateway, Auth)
-- **AI Core (Python):** Python OOP microservice for skill gap analysis
-- **Generative AI & RAG:** Knowledge-base grounded LLM for roadmap generation
-- **Agentic AI:** Career Planning AI Agent with tools to analyze skills and search resources
-- **DevOps:** Docker, Kubernetes, Terraform, GitHub Actions (CI/CD)
+## Required AI components
 
-## 📁 Repository Structure
-```
-project/
-├── frontend/             # React dashboard and Nginx container
-├── backend/              # Node.js microservices
-│   ├── auth-service/     # JWT authentication and user accounts
-│   └── api-gateway/      # Protected profile API and service gateway
-├── python-service/       # OOP SkillAnalyzer and AI HTTP service
-├── rag/knowledge-base/   # Local role-specific RAG source documents
-├── agent/                # CareerAgent orchestration and tool calls
-├── kubernetes/           # Full-stack Kubernetes manifests
-├── terraform/            # AWS ECR infrastructure configuration
-├── scripts/setup.sh      # Linux setup script
-├── docker-compose.yml    # One-command local stack
-├── render.yaml           # Render deployment Blueprint
-└── .github/workflows/    # Continuous-integration workflow
-```
+| Requirement | Implementation |
+| --- | --- |
+| Python + OOP | `python-service/skill_analyzer.py` provides the class-based `SkillAnalyzer` |
+| GenAI | `CareerAgent` uses the OpenAI Responses API when an API key is configured |
+| RAG | `rag/retriever.py` retrieves local role-specific `.txt` documents |
+| Agentic AI | `CareerAgent` explicitly invokes skill-analysis and RAG-retrieval tools |
 
-## 👨‍💻 Author
-- [@zohaakhawajaa](https://github.com/zohaakhawajaa)
+The free local mode remains fully functional without an API key: it creates personalized role-specific roadmaps from skill analysis and retrieved local guidance.
+
+## Required web components
+
+- React dashboard in `frontend/`
+- Node.js API Gateway in `backend/api-gateway/`
+- Separate Node.js Auth Service in `backend/auth-service/`
+- MongoDB database
+
+## Required DevOps components
+
+- Linux setup script: `scripts/setup.sh`
+- Docker: `docker-compose.yml` and service Dockerfiles
+- Kubernetes: `kubernetes/skillforge-stack.yaml`
+- Terraform: `terraform/`
+- CI: `.github/workflows/ci.yml`
+- Render deployment Blueprint: `render.yaml`
 
 ## Run locally
 
-The complete stack is containerized. From the `SkillForge` directory, run:
-
 ```bash
+cp .env.example .env
 docker compose up --build
 ```
 
-Open `http://localhost:8080` for the dashboard. The API gateway is available at
-`http://localhost:3000/api/health`, and the Python AI service health endpoint is
-at `http://localhost:5000/api/health`.
+Open `http://localhost:8080`.
 
-Roadmaps work without an API key using the local knowledge-base fallback. To use
-an OpenAI-generated roadmap, set `OPENAI_API_KEY` in your shell before starting
-Compose. You may also set `OPENAI_MODEL` (defaults to `gpt-4.1-mini`).
+On Windows PowerShell:
 
-For production, set a long random `JWT_SECRET` before starting Compose. The
-included default is only suitable for local development.
+```powershell
+Copy-Item .env.example .env
+docker compose up --build
+```
+
+`OPENAI_API_KEY` is optional. Leave it blank to use the free local RAG mode. Never commit a real `.env` file.
 
 ## Quick verification
 
-Run the core AI checks without starting Docker:
-
 ```bash
 python python-service/test_skill_analyzer.py
+docker compose config --quiet
 ```
 
-Supported career goals: AI Engineer, Web Developer, Data Analyst, Data Scientist,
-Cybersecurity Analyst, and Mobile Developer.
+Supported target roles: AI Engineer, Web Developer, Data Analyst, Data Scientist, Cybersecurity Analyst, and Mobile Developer.
 
 ## Hackathon demo flow
 
-For the required 5–7 minute demo, present the live system in this order:
+1. Create an account.
+2. Enter the student's profile, target role, and current skills.
+3. Generate the role-weighted skill assessment and roadmap.
+4. Show RAG Chat and its returned source files.
+5. Mark a roadmap item complete and show persisted progress.
+6. Show Docker Compose, Kubernetes manifests, Terraform, and GitHub Actions CI.
 
-1. Create an account (standalone Auth Service behind the API Gateway).
-2. Enter a student profile, target role, and current skills.
-3. Generate the skill assessment and personalized AI roadmap.
-4. Open **RAG Chat** under the roadmap and ask a role-specific follow-up question.
-5. Mark a roadmap step complete and show saved progress after a refresh/sign-in.
-6. Show `docker-compose.yml`, `kubernetes/skillforge-stack.yaml`, `terraform/`, and the green GitHub Actions workflow.
+## Submission pack
 
-The RAG Chat and roadmap both use `CareerAgent`, which invokes the OOP
-`SkillAnalyzer` and the local `rag/knowledge-base` retriever before responding.
+Use these links for the hackathon submission form:
 
-## Continuous integration
-
-GitHub Actions runs Python analyzer tests, a production frontend build, API syntax
-validation, Docker Compose validation, and a full-stack Docker smoke test on pushes
-and pull requests to `main`.
+- [Architecture diagram](docs/architecture.svg)
+- [Database / schema explanation](docs/database-schema.md)
+- [API documentation](docs/api-documentation.md)
+- [AI / agent explanation](docs/ai-agent-explanation.md)
+- [Presentation outline](docs/presentation-outline.md)
+- [Environment template](.env.example)
+- [Docker configuration](docker-compose.yml)
+- [Kubernetes manifests](kubernetes/skillforge-stack.yaml)
+- [Terraform files](terraform/)
+- [Linux shell script](scripts/setup.sh)
+- [RAG knowledge-base files](rag/knowledge-base/)
 
 ## Security notes
 
-Passwords are hashed with bcrypt, API sessions use seven-day JWTs, user resources
-are ownership-protected, and authentication endpoints are rate limited. Configure
-a long, unique `JWT_SECRET` before any public deployment.
-
-## Kubernetes deployment
-
-Build and publish the three images to a registry, update their image names in
-`kubernetes/skillforge-stack.yaml`, replace the placeholder secret values, then run:
-
-```bash
-kubectl apply -f kubernetes/skillforge-stack.yaml
-```
-
-The included MongoDB deployment uses ephemeral storage for demonstration only.
-Use a managed database or persistent volume before a production deployment.
-
-## Terraform infrastructure
-
-`terraform/` defines three AWS ECR repositories for the frontend, API gateway,
-and Python AI images used by the Kubernetes deployment. With AWS credentials
-configured locally:
-
-```bash
-cd terraform
-terraform init
-terraform plan
-terraform apply
-```
-
-Copy `terraform.tfvars.example` to `terraform.tfvars` if you want to override
-the default AWS region or project name. Do not commit `terraform.tfvars`.
-
-## Render deployment
-
-The repository includes a `render.yaml` Blueprint for Render. It creates a public
-frontend plus private API and Python services. It requires a MongoDB Atlas (or
-other managed MongoDB) connection string because Render Blueprints provide
-Postgres databases but not MongoDB.
-
-1. Create a MongoDB Atlas database and copy its `mongodb+srv://...` connection string.
-2. In Render, choose **New → Blueprint**, connect this GitHub repository, and select `render.yaml`.
-3. Enter the `MONGODB_URI` value when prompted. Render generates `JWT_SECRET`.
-4. Leave `OPENAI_API_KEY` blank to use local fallback roadmaps, or provide it for LLM mode.
-5. Deploy. Render's private services keep the API and Python service off the public internet.
+Passwords are hashed with bcrypt. API sessions are JWT-based, auth routes are rate-limited, and profile routes enforce ownership by authenticated user ID. Configure a long unique `JWT_SECRET` for public deployments.
